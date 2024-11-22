@@ -32,9 +32,9 @@ class Car(Agent):
         self.path = []
     def Move(self):
         Next = [pos for pos in self.model.grid.get_cell_list_contents([self.pos]) if ]
-            self.pos = self.path[self.steps_taken + 1]
-            self.steps_taken += 1
-            
+        self.pos = self.path[self.steps_taken + 1]
+        self.steps_taken += 1
+
 class Traffic_Light(Agent):
     """
     Traffic lights agents will change conditions within time
@@ -42,15 +42,15 @@ class Traffic_Light(Agent):
     """
     def __init__(self, unique_id, model, state, timeToChange):
         super().__init__(unique_id, model)
-        """ 
-        The lights and their colours are defined in a dictionary, where 
+        """
+        The lights and their colours are defined in a dictionary, where
         """
         self.lights = {True : "Green", False : "Red"}
         self.state = self.lights[state]
         self.timeToChange = timeToChange
 
     def step(self,):
-        """ 
+        """
         To change the state (green or red) of the traffic light in case you consider the time to change of each traffic light.
         """
         if self.model.schedule.steps % self.timeToChange == 0:
@@ -63,7 +63,7 @@ class TrafficLight(Agent):
         self.condition = "Green"
         not self.condition = "Red"
     def change_light(self):
-        self.condition = not self.condition 
+        self.condition = not self.condition
 
 
 class Road(Agent):
@@ -81,7 +81,7 @@ class Road(Agent):
         super().__init__(unique_id, model)
         self.direction = direction
 
-        
+
 
 
 class Building(Agent):
