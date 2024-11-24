@@ -31,22 +31,26 @@ class Car(Agent):
         self.destination = destination
         self.path = []
     def Move(self):
-        Next = [pos for pos in self.model.grid.get_cell_list_contents([self.pos]) if ]
+        Next = [agent for agent in self.model.grid.get_cell_list_contents([self.path[self.steps_taken + 1]])]
+        if Car not in Next and TrafficLight not in Next and Building not in Next:
             self.pos = self.path[self.steps_taken + 1]
             self.steps_taken += 1
-            
+        elif Car in Next and TrafficLight not in Next and Building not in Next:
+            pass    
+
+      
 class Traffic_Light(Agent):
+
     """
     Traffic lights agents will change conditions within time
     from green to red and from red to green
     """
-    def __init__(self, unique_id, model, state, timeToChange):
+    def __init__(self, unique_id, model, timeToChange,condition):
         super().__init__(unique_id, model)
-        """ 
-        The lights and their colours are defined in a dictionary, where 
-        """
-        self.lights = {True : "Green", False : "Red"}
-        self.state = self.lights[state]
+        if condition == True:  
+            self.condition = "Green"
+        else:
+            self.condition = "Red"
         self.timeToChange = timeToChange
 
     def step(self,):
@@ -55,22 +59,40 @@ class Traffic_Light(Agent):
         """
         if self.model.schedule.steps % self.timeToChange == 0:
             self.state = not self.lights[self.state]
-class TrafficLight(Agent):
-
-
-    def __init__(self, unique_id, model):
-        super().__init__(unique_id, model)
-        self.condition = "Green"
-        not self.condition = "Red"
-    def change_light(self):
-        self.condition = not self.condition 
-
 
 class Road(Agent):
     """
     Road agent. Determines where the cars can move, and in which direction.
     """
-    def __init__(self, unique_id, model, direction= "Left"):
+    def __init__(self, unique_id, model, direction):
+        """
+        Creates a new road.
+        Args:
+            unique_id: The agent's ID
+            model: Model reference for the agent
+            direction: Direction where the cars can move
+        """
+        super().__init__(unique_id, model)
+        self.direction = direction
+class Obstacle(Agent):
+    """
+    Road agent. Determines where the cars can move, and in which direction.
+    """
+    def __init__(self, unique_id, model, direction):
+        """
+        Creates a new road.
+        Args:
+            unique_id: The agent's ID
+            model: Model reference for the agent
+            direction: Direction where the cars can move
+        """
+        super().__init__(unique_id, model)
+        self.direction = direction
+class Destination(Agent):
+    """
+    Road agent. Determines where the cars can move, and in which direction.
+    """
+    def __init__(self, unique_id, model, direction):
         """
         Creates a new road.
         Args:
@@ -81,6 +103,8 @@ class Road(Agent):
         super().__init__(unique_id, model)
         self.direction = direction
 
+        
+        
         
 
 
