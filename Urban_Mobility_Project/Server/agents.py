@@ -38,7 +38,7 @@ class Car(Agent):
         elif Car in Next and TrafficLight not in Next and Building not in Next:
             pass    
 
-      
+
 class Traffic_Light(Agent):
 
     """
@@ -47,6 +47,7 @@ class Traffic_Light(Agent):
     """
     def __init__(self, unique_id, model, timeToChange,condition):
         super().__init__(unique_id, model)
+
         if condition == True:  
             self.condition = "Green"
         else:
@@ -54,12 +55,11 @@ class Traffic_Light(Agent):
         self.timeToChange = timeToChange
 
     def step(self,):
-        """ 
+        """
         To change the state (green or red) of the traffic light in case you consider the time to change of each traffic light.
         """
         if self.model.schedule.steps % self.timeToChange == 0:
             self.state = not self.lights[self.state]
-
 class Road(Agent):
     """
     Road agent. Determines where the cars can move, and in which direction.
@@ -102,15 +102,7 @@ class Destination(Agent):
         """
         super().__init__(unique_id, model)
         self.direction = direction
-
-        
-        
-        
-
-
-class Building(Agent):
-    def __init__(self, unique_id, model):
-        super().__init__(unique_id, model)
+       
 
     def step(self):
         pass
