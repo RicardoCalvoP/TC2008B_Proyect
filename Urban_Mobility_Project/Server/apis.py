@@ -5,7 +5,7 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS, cross_origin
 from model import City
-from agents import Car, Building
+from agents import Car, Obstacle, Traffic_Light, Destination
 
 # Size of the board:
 number_agents = 10
@@ -80,7 +80,7 @@ def getObstacles():
         # Same as before, the positions are sent as a list of dictionaries, where each dictionary has the id and position of an obstacle.
             carPositions = [
                 {"id": str(a.unique_id), "x": x, "y":1, "z":z}
-                for a, (x, z) in city.grid.coord_iter() if isinstance(a, Building)
+                for a, (x, z) in city.grid.coord_iter() if isinstance(a, Obstacle)
             ]
 
             return jsonify({'positions':carPositions})

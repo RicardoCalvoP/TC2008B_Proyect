@@ -13,7 +13,7 @@ Used Agents:
 
 from mesa import Agent
 import math
-from model import City
+
 
 class Car(Agent):
     """
@@ -31,12 +31,12 @@ class Car(Agent):
         self.destination = destination
         self.path = []
     def Move(self):
-        Next = [agent for agent in self.model.grid.get_cell_list_contents([self.path[self.steps_taken + 1]])]
-        if Car not in Next and TrafficLight not in Next and Building not in Next:
-            self.pos = self.path[self.steps_taken + 1]
+        Next = [agent for agent in self.model.grid.get_cell_list_contents([self.path[self.steps_taken + 1]].pos)]
+        if len(Next) == 1 and Next[0].isinstance(Agent,Road) or Next[0].isinstance(Agent,Traffic_Light) and Next[0].condition == True and len(Next) == 1:
+            self.model.grid.move_agent(self, self.steps_taken + 1)
             self.steps_taken += 1
-        elif Car in Next and TrafficLight not in Next and Building not in Next:
-            pass    
+        else:
+            pass
 
 
 class Traffic_Light(Agent):
@@ -48,12 +48,8 @@ class Traffic_Light(Agent):
     def __init__(self, unique_id, model, timeToChange,condition):
         super().__init__(unique_id, model)
 
-        if condition == True:  
-            self.condition = "Green"
-        else:
-            self.condition = "Red"
+        self.condition = condition
         self.timeToChange = timeToChange
-
     def step(self,):
         """
         To change the state (green or red) of the traffic light in case you consider the time to change of each traffic light.
