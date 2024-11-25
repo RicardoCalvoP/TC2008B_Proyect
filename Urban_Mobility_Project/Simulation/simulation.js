@@ -8,11 +8,12 @@ WebGl frontend simulation
 'use strict';
 
 import * as twgl from 'twgl.js';
+import * as twgl from 'twgl.js';
 import GUI from 'lil-gui';
 import { v3, m4 } from './libs/3D_libs.js';
 
 // Define the shader code, using GLSL 3.00
-import vsGLSL from './Assets/Shaders/vs_phong.glsl';
+import vsGLSL from './Assets/Shaders/vs_phong.glsl?raw';
 import fsGLSL from './Assets/Shaders/fs_phong.glsl?raw';
 
 import { load_obj } from "./Assets/ExtraFunctions/load_obj.js";
@@ -158,7 +159,7 @@ async function getAgents() {
       let result = await response.json()
 
       // Log the agent positions
-      console.log(result.positions)
+      console.log(result.positions.length)
 
       // Check if the agents array is empty
       if (agents.length == 0) {
@@ -206,7 +207,8 @@ async function getObstacles() {
 
       // Create new obstacles and add them to the obstacles array
       for (const obstacle of result.positions) {
-        const newObstacle = new Object3D(obstacle.id, [obstacle.x, obstacle.y, obstacle.z])
+        const newObstacle = new Agents(obstacle.id, [obstacle.x, obstacle.y, obstacle.z])
+        newObstacle.color = [0.5, 0.5, 0.5, 1];
         obstacles.push(newObstacle)
       }
       // Log the obstacles array
@@ -306,164 +308,165 @@ async function drawScene(gl, programInfo, agentsVao, agentsBufferInfo, obstacles
  * @param {Float32Array} viewProjectionMatrix - The view-projection matrix.
  */
 function drawAgents(agentsVao, agentsBufferInfo, viewProjectionMatrix) {
-  // Bind the vertex array object for agents
-  gl.bindVertexArray(agentsVao);
+  function drawAgents(agentsVao, agentsBufferInfo, viewProjectionMatrix) {
+    // Bind the vertex array object for agents
+    gl.bindVertexArray(agentsVao);
 
-  // Iterate over the agents
-  for (const agent of agents) {
-    // Calculate the agent's position
+    // Iterate over the agents
+    for (const agent of agents) {
+      // Calculate the agent's position
 
-    // Create the agent's transformation matrix
+      // Create the agent's transformation matrix
 
-    // Transform Car Matrix
-    const car_trans = m4.translation(...agent.position);
-    // Rotation Car Matrixes
-    const car_rotX = m4.rotationX(agent.rotation[0]);
-    const car_rotY = m4.rotationY(agent.rotation[1]);
-    const car_rotZ = m4.rotationZ(agent.rotation[2]);
-    // Scale Car Matrix
-    const car_scale = m4.scale(...agent.scale);
+      // Transform Car Matrix
+      const car_trans = m4.translation(...agent.position);
+      // Rotation Car Matrixes
+      const car_rotX = m4.rotationX(agent.rotation[0]);
+      const car_rotY = m4.rotationY(agent.rotation[1]);
+      const car_rotZ = m4.rotationZ(agent.rotation[2]);
+      // Scale Car Matrix
+      const car_scale = m4.scale(...agent.scale);
 
 
-    // Calculate the agent's matrix
-    let car_transforms = m4.identity();
+      // Calculate the agent's matrix
+      let car_transforms = m4.identity();
 
-    car_transforms = m4.multiply(car_trans, car_transforms);
-    car_transforms = m4.multiply(car_rotX, car_transforms);
-    car_transforms = m4.multiply(car_rotY, car_transforms);
-    car_transforms = m4.multiply(car_rotZ, car_transforms);
-    car_transforms = m4.multiply(car_scale, car_transforms);
+      car_transforms = m4.multiply(car_trans, car_transforms);
+      car_transforms = m4.multiply(car_rotX, car_transforms);
+      car_transforms = m4.multiply(car_rotY, car_transforms);
+      car_transforms = m4.multiply(car_rotZ, car_transforms);
+      car_transforms = m4.multiply(car_scale, car_transforms);
 
-    // World view ¿?
-    worldViewProjection = m4.multiply(viewProjectionMatrix, car_transforms);
+      // World view ¿?
+      worldViewProjection = m4.multiply(viewProjectionMatrix, car_transforms);
 
-    // Set the uniforms for the agent
-    let uniforms = {
-      u_world: car_transforms, // ¿?
+      // Set the uniforms for the agent
+      let uniforms = {
+        u_world: car_transforms, // ¿?
 
-      u_worldInverseTransform: transformsInverseTranspose,
-      u_worldViewProjection: worldViewProjection,
-      u_ambientColor: agent.color,
-      u_diffuseColor: agent.color,
-      u_specularColor: agent.color,
-      u_shininess: Objects.car.model.shininess,
+        u_worldInverseTransform: transformsInverseTranspose,
+        u_worldViewProjection: worldViewProjection,
+        u_ambientColor: agent.color,
+        u_diffuseColor: agent.color,
+        u_specularColor: agent.color,
+        u_shininess: Objects.car.model.shininess,
+
+      }
+
+      // Set the uniforms and draw the agent
+      twgl.setUniforms(programInfo, uniforms);
+      twgl.drawBufferInfo(gl, agentsBufferInfo);
 
     }
-
-    // Set the uniforms and draw the agent
-    twgl.setUniforms(programInfo, uniforms);
-    twgl.drawBufferInfo(gl, agentsBufferInfo);
-
   }
-}
 
 
-/*
- * Draws the obstacles.
- *
- * @param {Number} distance - The distance for rendering.
- * @param {WebGLVertexArrayObject} obstaclesVao - The vertex array object for obstacles.
- * @param {Object} obstaclesBufferInfo - The buffer information for obstacles.
- * @param {Float32Array} viewProjectionMatrix - The view-projection matrix.
- */
-function drawObstacles(distance, obstaclesVao, obstaclesBufferInfo, viewProjectionMatrix) {
-  // Bind the vertex array object for obstacles
-  gl.bindVertexArray(obstaclesVao);
+  /*
+   * Draws the obstacles.
+   *
+   * @param {Number} distance - The distance for rendering.
+   * @param {WebGLVertexArrayObject} obstaclesVao - The vertex array object for obstacles.
+   * @param {Object} obstaclesBufferInfo - The buffer information for obstacles.
+   * @param {Float32Array} viewProjectionMatrix - The view-projection matrix.
+   */
+  function drawObstacles(obstaclesVao, obstaclesBufferInfo, viewProjectionMatrix) {
+    // Bind the vertex array object for obstacles
+    gl.bindVertexArray(obstaclesVao);
 
-  // Iterate over the obstacles
-  for (const obstacle of obstacles) {
-    // Create the obstacle's transformation matrix
-    const cube_trans = twgl.v3.create(...obstacle.position);
-    const cube_scale = twgl.v3.create(...obstacle.scale);
+    // Iterate over the obstacles
+    for (const obstacle of obstacles) {
+      // Create the obstacle's transformation matrix
+      const cube_trans = twgl.v3.create(...obstacle.position);
+      // const cube_scale = twgl.v3.create(...obstacle.scale);
 
-    // Calculate the obstacle's matrix
-    obstacle.matrix = twgl.m4.translate(viewProjectionMatrix, cube_trans);
-    obstacle.matrix = twgl.m4.rotateX(obstacle.matrix, obstacle.rotation[0]);
-    obstacle.matrix = twgl.m4.rotateY(obstacle.matrix, obstacle.rotation[1]);
-    obstacle.matrix = twgl.m4.rotateZ(obstacle.matrix, obstacle.rotation[2]);
-    obstacle.matrix = twgl.m4.scale(obstacle.matrix, cube_scale);
+      // Calculate the obstacle's matrix
+      obstacle.matrix = twgl.m4.translate(viewProjectionMatrix, cube_trans);
+      // obstacle.matrix = twgl.m4.rotateX(obstacle.matrix, obstacle.rotation[0]);
+      // obstacle.matrix = twgl.m4.rotateY(obstacle.matrix, obstacle.rotation[1]);
+      // obstacle.matrix = twgl.m4.rotateZ(obstacle.matrix, obstacle.rotation[2]);
+      // obstacle.matrix = twgl.m4.scale(obstacle.matrix, cube_scale);
 
-    // Set the uniforms for the obstacle
-    let uniforms = {
-      u_matrix: obstacle.matrix,
+      // Set the uniforms for the obstacle
+      let uniforms = {
+        u_matrix: obstacle.matrix,
+      }
+
+      // Set the uniforms and draw the obstacle
+      twgl.setUniforms(programInfo, uniforms);
+      twgl.drawBufferInfo(gl, obstaclesBufferInfo);
+
     }
-
-    // Set the uniforms and draw the obstacle
-    twgl.setUniforms(programInfo, uniforms);
-    twgl.drawBufferInfo(gl, obstaclesBufferInfo);
-
   }
-}
 
-/*
- * Sets up the world view by creating the view-projection matrix.
- *
- * @param {WebGLRenderingContext} gl - The WebGL rendering context.
- * @returns {Float32Array} The view-projection matrix.
- */
-function setupWorldView(gl) {
-  // Set the field of view (FOV) in radians
-  const fov = 45 * Math.PI / 180;
+  /*
+   * Sets up the world view by creating the view-projection matrix.
+   *
+   * @param {WebGLRenderingContext} gl - The WebGL rendering context.
+   * @returns {Float32Array} The view-projection matrix.
+   */
+  function setupWorldView(gl) {
+    // Set the field of view (FOV) in radians
+    const fov = 45 * Math.PI / 180;
 
-  // Calculate the aspect ratio of the canvas
-  const aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
+    // Calculate the aspect ratio of the canvas
+    const aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
 
-  // Create the projection matrix
-  const projectionMatrix = twgl.m4.perspective(fov, aspect, 1, 200);
+    // Create the projection matrix
+    const projectionMatrix = twgl.m4.perspective(fov, aspect, 1, 200);
 
-  // Set the target position
-  const target = [data.width / 2, 0, data.height / 2];
+    // Set the target position
+    const target = [data.width / 2, 0, data.height / 2];
 
-  // Set the up vector
-  const up = [0, 1, 0];
+    // Set the up vector
+    const up = [0, 1, 0];
 
-  // Calculate the camera position
-  const camPos = twgl.v3.create(cameraPosition.x + data.width / 2, cameraPosition.y, cameraPosition.z + data.height / 2)
+    // Calculate the camera position
+    const camPos = twgl.v3.create(cameraPosition.x + data.width / 2, cameraPosition.y, cameraPosition.z + data.height / 2)
 
-  // Create the camera matrix
-  const cameraMatrix = twgl.m4.lookAt(camPos, target, up);
+    // Create the camera matrix
+    const cameraMatrix = twgl.m4.lookAt(camPos, target, up);
 
-  // Calculate the view matrix
-  const viewMatrix = twgl.m4.inverse(cameraMatrix);
+    // Calculate the view matrix
+    const viewMatrix = twgl.m4.inverse(cameraMatrix);
 
-  // Calculate the view-projection matrix
-  const viewProjectionMatrix = twgl.m4.multiply(projectionMatrix, viewMatrix);
+    // Calculate the view-projection matrix
+    const viewProjectionMatrix = twgl.m4.multiply(projectionMatrix, viewMatrix);
 
-  // Return the view-projection matrix
-  return viewProjectionMatrix;
-}
+    // Return the view-projection matrix
+    return viewProjectionMatrix;
+  }
 
-/*
- * Sets up the user interface (UI) for the camera position.
- */
-function setupUI() {
-  // Create a new GUI instance
-  const gui = new GUI();
+  /*
+   * Sets up the user interface (UI) for the camera position.
+   */
+  function setupUI() {
+    // Create a new GUI instance
+    const gui = new GUI();
 
-  // Create a folder for the camera position
-  const posFolder = gui.addFolder('Position:')
+    // Create a folder for the camera position
+    const posFolder = gui.addFolder('Position:')
 
-  // Add a slider for the x-axis
-  posFolder.add(cameraPosition, 'x', -50, 50)
-    .onChange(value => {
-      // Update the camera position when the slider value changes
-      cameraPosition.x = value
-    });
+    // Add a slider for the x-axis
+    posFolder.add(cameraPosition, 'x', -50, 50)
+      .onChange(value => {
+        // Update the camera position when the slider value changes
+        cameraPosition.x = value
+      });
 
-  // Add a slider for the y-axis
-  posFolder.add(cameraPosition, 'y', -50, 50)
-    .onChange(value => {
-      // Update the camera position when the slider value changes
-      cameraPosition.y = value
-    });
+    // Add a slider for the y-axis
+    posFolder.add(cameraPosition, 'y', -50, 50)
+      .onChange(value => {
+        // Update the camera position when the slider value changes
+        cameraPosition.y = value
+      });
 
-  // Add a slider for the z-axis
-  posFolder.add(cameraPosition, 'z', -50, 50)
-    .onChange(value => {
-      // Update the camera position when the slider value changes
-      cameraPosition.z = value
-    });
-}
+    // Add a slider for the z-axis
+    posFolder.add(cameraPosition, 'z', -50, 50)
+      .onChange(value => {
+        // Update the camera position when the slider value changes
+        cameraPosition.z = value
+      });
+  }
 
 
-main()
+  main()
