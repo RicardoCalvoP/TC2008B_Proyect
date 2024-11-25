@@ -7,8 +7,8 @@ In this file we are going to set up the Server, as well
 as defining the objects that translate the agent and model
 into a browser visualization:
 """
-from agents import *
-from model import CityModel
+from model import City
+from agents import Road, Obstacle, Traffic_Light, Destination
 from mesa.visualization import CanvasGrid, BarChartModule
 from mesa.visualization import ModularServer
 
@@ -49,7 +49,7 @@ def agent_portrayal(agent):
 width = 0
 height = 0
 
-with open('city_files/2022_base.txt') as baseFile:
+with open('./2023_base.txt') as baseFile:
     lines = baseFile.readlines()
     width = len(lines[0])-1
     height = len(lines)
@@ -59,7 +59,7 @@ model_params = {"N":5}
 print(width, height)
 grid = CanvasGrid(agent_portrayal, width, height, 500, 500)
 
-server = ModularServer(CityModel, [grid], "Traffic Base", model_params)
+server = ModularServer(City, [grid], "Traffic Base", model_params)
                        
 server.port = 8521 # The default
 server.launch()
