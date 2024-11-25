@@ -7,7 +7,7 @@ WebGl frontend simulation
 
 'use strict';
 
-import * as twgl from 'twgl-base.js';
+import * as twgl from 'twgl.js';
 import GUI from 'lil-gui';
 import { v3, m4 } from './libs/3D_libs.js';
 
@@ -29,12 +29,6 @@ const Objects = {
       shininess: 100,
       texture: undefined
     },
-    'transforms': {
-      t: { x: 0, y: 0, z: 0 },
-      rd: { x: 0, y: 0, z: 0 },
-      rr: { x: 0, y: 0, z: 0 },
-      s: { x: 0, y: 0, z: 0 },
-    },
     'arrays': undefined,
     'vao': undefined,
     'bufferInfo': undefined,
@@ -48,12 +42,6 @@ const Objects = {
       shininess: 50,
       texture: undefined
     },
-    'transforms': {
-      t: { x: 0, y: 0, z: 0 },
-      rd: { x: 0, y: 0, z: 0 },
-      rr: { x: 0, y: 0, z: 0 },
-      s: { x: 0, y: 0, z: 0 },
-    },
     'arrays': undefined,
     'vao': undefined,
     'bufferInfo': undefined,
@@ -61,6 +49,17 @@ const Objects = {
   }
 }
 
+// Objects class
+class Agents {
+  constructor(id, position = [0, 0, 0], rotation = [0, 0, 0], scale = [1, 1, 1]) {
+    this.id = id;
+    this.position = position;
+    this.rotation = rotation;
+    this.scale = scale;
+    this.color = undefined;
+    this.matrix = m4.identity();
+  }
+}
 
 // Global Variables
 // Define the agent server URI
@@ -165,7 +164,8 @@ async function getAgents() {
       if (agents.length == 0) {
         // Create new agents and add them to the agents array
         for (const agent of result.positions) {
-          const newAgent = new Object3D(agent.id, [agent.x, agent.y, agent.z])
+          const newAgent = new Agents(agent.id, [agent.x, agent.y, agent.z]);
+          newAgent.color = [Math.random(), Math.random(), Math.random(), 1];
           agents.push(newAgent)
         }
         // Log the agents array
@@ -269,15 +269,20 @@ async function drawScene(gl, programInfo, agentsVao, agentsBufferInfo, obstacles
   gl.useProgram(programInfo.program);
 
   // Set up the view-projection matrix
-  const viewProjectionMatrix = setupWorldView(gl);
+  const viewProjectionMatrix = setupWorldView(gl); // Identity ?
 
   // Set the distance for rendering
-  const distance = 1
+  const distance = 1 // ????
 
   // Draw the agents
-  drawAgents(distance, agentsVao, agentsBufferInfo, viewProjectionMatrix)
+  drawAgents(
+    // distance,
+    agentsVao, agentsBufferInfo, viewProjectionMatrix)
+
   // Draw the obstacles
-  drawObstacles(distance, obstaclesVao, obstaclesBufferInfo, viewProjectionMatrix)
+  drawObstacles(
+    // distance,
+    obstaclesVao, obstaclesBufferInfo, viewProjectionMatrix)
 
   // Increment the frame count
   frameCount++
@@ -300,29 +305,49 @@ async function drawScene(gl, programInfo, agentsVao, agentsBufferInfo, obstacles
  * @param {Object} agentsBufferInfo - The buffer information for agents.
  * @param {Float32Array} viewProjectionMatrix - The view-projection matrix.
  */
-function drawAgents(distance, agentsVao, agentsBufferInfo, viewProjectionMatrix) {
+function drawAgents(agentsVao, agentsBufferInfo, viewProjectionMatrix) {
   // Bind the vertex array object for agents
   gl.bindVertexArray(agentsVao);
 
   // Iterate over the agents
   for (const agent of agents) {
     // Calculate the agent's position
-    let x = agent.position[0] * distance, y = agent.position[1] * distance, z = agent.position[2]
 
     // Create the agent's transformation matrix
-    const cube_trans = twgl.v3.create(...agent.position);
-    const cube_scale = twgl.v3.create(...agent.scale);
+
+    // Transform Car Matrix
+    const car_trans = m4.translation(...agent.position);
+    // Rotation Car Matrixes
+    const car_rotX = m4.rotationX(agent.rotation[0]);
+    const car_rotY = m4.rotationY(agent.rotation[1]);
+    const car_rotZ = m4.rotationZ(agent.rotation[2]);
+    // Scale Car Matrix
+    const car_scale = m4.scale(...agent.scale);
+
 
     // Calculate the agent's matrix
-    agent.matrix = twgl.m4.translate(viewProjectionMatrix, cube_trans);
-    agent.matrix = twgl.m4.rotateX(agent.matrix, agent.rotation[0]);
-    agent.matrix = twgl.m4.rotateY(agent.matrix, agent.rotation[1]);
-    agent.matrix = twgl.m4.rotateZ(agent.matrix, agent.rotation[2]);
-    agent.matrix = twgl.m4.scale(agent.matrix, cube_scale);
+    let car_transforms = m4.identity();
+
+    car_transforms = m4.multiply(car_trans, car_transforms);
+    car_transforms = m4.multiply(car_rotX, car_transforms);
+    car_transforms = m4.multiply(car_rotY, car_transforms);
+    car_transforms = m4.multiply(car_rotZ, car_transforms);
+    car_transforms = m4.multiply(car_scale, car_transforms);
+
+    // World view ¿?
+    worldViewProjection = m4.multiply(viewProjectionMatrix, car_transforms);
 
     // Set the uniforms for the agent
     let uniforms = {
-      u_matrix: agent.matrix,
+      u_world: car_transforms, // ¿?
+
+      u_worldInverseTransform: transformsInverseTranspose,
+      u_worldViewProjection: worldViewProjection,
+      u_ambientColor: agent.color,
+      u_diffuseColor: agent.color,
+      u_specularColor: agent.color,
+      u_shininess: Objects.car.model.shininess,
+
     }
 
     // Set the uniforms and draw the agent
