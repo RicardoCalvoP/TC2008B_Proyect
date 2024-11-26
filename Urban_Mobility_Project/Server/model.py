@@ -41,11 +41,11 @@ class City(Model):
                 for r, row in enumerate(lines):
                     for c, col in enumerate(row):
                         if col in ["v", "^", ">", "<"]:
-                            agent = Road(f"r_{r*self.width+c}", self, dataDictionary[col], Road, 1000+r*self.width+c)
+                            agent = Road(f"r_{r*self.width+c}", self, dataDictionary[col])
                             self.grid.place_agent(agent, (c, self.height - r - 1))
 
                         elif col in ["S", "s"]:
-                            agent = Traffic_Light(f"tl_{r*self.width+c}", self, False if col == "S" else True, int(dataDictionary[col]), light_change)
+                            agent = Traffic_Light(f"tl_{r*self.width+c}", self, False if col == "S" else True, int(dataDictionary[col]))
                             self.grid.place_agent(agent, (c, self.height - r - 1))
                             self.schedule.add(agent)
                             self.traffic_lights.append(agent)
