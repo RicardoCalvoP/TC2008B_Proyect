@@ -103,6 +103,13 @@ class City(Model):
                             self.traffic_lights.append(agent)
                             self.streets.append((pos, agent.direction))
 
+
+                            agent = Road(
+                                f"r{r*self.width+c}", direction, self)
+                            self.grid.place_agent(
+                                agent, pos)
+
+
                         # Buildings
                         elif col == "#":
                             agent = Obstacle(f"ob{r*self.width+c}", self)

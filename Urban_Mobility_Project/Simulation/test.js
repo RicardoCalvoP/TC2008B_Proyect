@@ -3,11 +3,18 @@
 import * as twgl from 'twgl.js';
 import GUI from 'lil-gui';
 
+import { load_obj } from "./Assets/ExtraFunctions/load_obj.js";
+
+import building from "../Objects/building1.obj?raw";
+import car from "../Objects/car.obj?raw";
+
 // Define the vertex shader code, using GLSL 3.00
 const vsGLSL = `#version 300 es
 in vec4 a_position;
-in vec4 a_color;
 
+// in vec4 a_color;
+
+uniform vec4 u_color;
 uniform mat4 u_transforms;
 uniform mat4 u_matrix;
 
@@ -15,7 +22,7 @@ out vec4 v_color;
 
 void main() {
 gl_Position = u_matrix * a_position;
-v_color = a_color;
+v_color = u_color;
 }
 `;
 
@@ -32,38 +39,136 @@ outColor = v_color;
 }
 `;
 
-// Define the Object3D class to represent 3D objects
-class Object3D {
-  constructor(id, position = [0, 0, 0], rotation = [0, 0, 0], scale = [1, 1, 1]) {
+const Objects = {
+  'car': {
+    'model': {
+      data: car,
+      color: [Math.random(), Math.random(), Math.random(), 1],
+      shininess: 100,
+      texture: undefined
+    },
+    'arrays': undefined,
+    'vao': undefined,
+    'bufferInfo': undefined,
+    'texture': undefined,
+    'id': undefined
+  },
+  'building': {
+    'model': {
+      data: building,
+      color: [0.5, 0.5, 0.5, 1],
+      shininess: 50,
+      texture: undefined
+    },
+    'arrays': undefined,
+    'vao': undefined,
+    'bufferInfo': undefined,
+    'texture': undefined,
+  },
+  'traffic_light': {
+    'model': {
+      data: building,
+      color: [0.5, 0.5, 0.5, 1],
+      shininess: 50,
+      texture: undefined
+    },
+    'arrays': undefined,
+    'vao': undefined,
+    'bufferInfo': undefined,
+    'texture': undefined,
+  },
+  'road': {
+    'model': {
+      data: building,
+      color: [0.5, 0.5, 0.5, 1],
+      shininess: 50,
+      texture: undefined
+    },
+    'arrays': undefined,
+    'vao': undefined,
+    'bufferInfo': undefined,
+    'texture': undefined,
+  },
+  'destination': {
+    'model': {
+      data: building,
+      color: [0.5, 0.5, 0.5, 1],
+      shininess: 50,
+      texture: undefined
+    },
+    'arrays': undefined,
+    'vao': undefined,
+    'bufferInfo': undefined,
+    'texture': undefined,
+  }
+
+}
+
+class Car {
+  constructor(id, position = [0, 0, 0], rotation = [0, 0, 0], scale = [0.25, 0.25, 0.15]) {
     this.id = id;
     this.position = position;
-    this.rotation = rotation;
     this.scale = scale;
+    this.rotation = rotation;
+    this.color = [1, 1, 1, 1];
     this.matrix = twgl.m4.create();
   }
 }
+class Obstacle {
+  constructor(id, position = [0, 0, 0], rotation = [0, 0, 0], scale = [1, 1, 1]) {
+    this.id = id;
+    this.position = position;
+    this.scale = scale;
+    this.rotation = rotation;
+    this.color = [0., 0.3, 0.3, 1];
+    this.matrix = twgl.m4.create();
+  }
+}
+class TrafficLight {
+  constructor(id, position = [0, 0, 0], rotation = [0, 0, 0], scale = [0.2, 0.2, 0.2]) {
+    this.id = id;
+    this.position = position;
+    this.scale = scale;
+    this.rotation = rotation;
+    this.color = [0.5, 0.5, 0.5, 1];
+    this.matrix = twgl.m4.create();
+  }
+}
+class Road {
+  constructor(id, position = [0, 0, 0], rotation = [0, 0, 0], scale = [1, 0.01, 1]) {
+    this.id = id;
+    this.position = position;
+    this.scale = scale;
+    this.rotation = rotation;
+    this.color = [0.5, 0.5, 0.5, 1];
+    this.matrix = twgl.m4.create();
+  }
+}
+
 
 // Define the agent server URI
 const agent_server_uri = "http://localhost:8585/";
 
 // Initialize arrays to store agents and obstacles
-const agents = [];
+let agents = [];
 const obstacles = [];
+const trafficLights = [];
+const roads = [];
+const destinations = [];
 
 // Initialize WebGL-related variables
-let gl, programInfo, agentArrays, obstacleArrays, agentsBufferInfo, obstaclesBufferInfo, agentsVao, obstaclesVao;
+let gl, programInfo, agentArrays, obstacleArrays, box;
 
 // Define the camera position
-let cameraPosition = { x: 0, y: 9, z: 9 };
-
+let cameraPosition = { x: 0, y: 25, z: 20 };
 // Initialize the frame count
 let frameCount = 0;
 
 // Define the data object
+
 const data = {
-  NAgents: 5,
-  width: 20,
-  height: 20
+  width: 24,
+  height: 25
 };
 
 // Main function to initialize and run the application
@@ -75,16 +180,23 @@ async function main() {
   programInfo = twgl.createProgramInfo(gl, [vsGLSL, fsGLSL]);
 
   // Generate the agent and obstacle data
-  agentArrays = generateData(1);
-  obstacleArrays = generateObstacleData(1);
+  agentArrays = load_obj(car);
+  obstacleArrays = load_obj(building);
+  box = generateObstacleData(1);
 
   // Create buffer information from the agent and obstacle data
-  agentsBufferInfo = twgl.createBufferInfoFromArrays(gl, agentArrays);
-  obstaclesBufferInfo = twgl.createBufferInfoFromArrays(gl, obstacleArrays);
+  Objects.car.bufferInfo = twgl.createBufferInfoFromArrays(gl, agentArrays);
+  Objects.building.bufferInfo = twgl.createBufferInfoFromArrays(gl, box);
+  Objects.traffic_light.bufferInfo = twgl.createBufferInfoFromArrays(gl, box);
+  Objects.road.bufferInfo = twgl.createBufferInfoFromArrays(gl, box);
+  Objects.destination.bufferInfo = twgl.createBufferInfoFromArrays(gl, box);
 
   // Create vertex array objects (VAOs) from the buffer information
-  agentsVao = twgl.createVAOFromBufferInfo(gl, programInfo, agentsBufferInfo);
-  obstaclesVao = twgl.createVAOFromBufferInfo(gl, programInfo, obstaclesBufferInfo);
+  Objects.car.vao = twgl.createVAOFromBufferInfo(gl, programInfo, Objects.car.bufferInfo);
+  Objects.building.vao = twgl.createVAOFromBufferInfo(gl, programInfo, Objects.building.bufferInfo);
+  Objects.traffic_light.vao = twgl.createVAOFromBufferInfo(gl, programInfo, Objects.traffic_light.bufferInfo);
+  Objects.road.vao = twgl.createVAOFromBufferInfo(gl, programInfo, Objects.road.bufferInfo);
+  Objects.destination.vao = twgl.createVAOFromBufferInfo(gl, programInfo, Objects.destination.bufferInfo);
 
   // Set up the user interface
   setupUI();
@@ -95,9 +207,12 @@ async function main() {
   // Get the agents and obstacles
   await getAgents();
   await getObstacles();
+  await getTrafficLights();
+  await getRoads();
+  await getDestination();
 
   // Draw the scene
-  await drawScene(gl, programInfo, agentsVao, agentsBufferInfo, obstaclesVao, obstaclesBufferInfo);
+  await drawScene(gl, Objects);
 }
 
 /*
@@ -142,27 +257,18 @@ async function getAgents() {
       console.log(result.positions)
 
       // Check if the agents array is empty
-      if (agents.length == 0) {
-        // Create new agents and add them to the agents array
-        for (const agent of result.positions) {
-          const newAgent = new Object3D(agent.id, [agent.x, agent.y, agent.z])
-          agents.push(newAgent)
-        }
-        // Log the agents array
-        console.log("Agents:", agents)
 
-      } else {
-        // Update the positions of existing agents
-        for (const agent of result.positions) {
-          const current_agent = agents.find((object3d) => object3d.id == agent.id)
+      agents = []
 
-          // Check if the agent exists in the agents array
-          if (current_agent != undefined) {
-            // Update the agent's position
-            current_agent.position = [agent.x, agent.y, agent.z]
-          }
-        }
+      for (const agent of result.positions) {
+        const newAgent = new Car(agent.id, [agent.x, agent.y, agent.z])
+        newAgent.color = [Math.random(), Math.random(), Math.random(), 1]
+        agents.push(newAgent)
       }
+      // Log the agents array
+      console.log("Agents:", agents)
+
+
     }
 
   } catch (error) {
@@ -186,7 +292,7 @@ async function getObstacles() {
 
       // Create new obstacles and add them to the obstacles array
       for (const obstacle of result.positions) {
-        const newObstacle = new Object3D(obstacle.id, [obstacle.x, obstacle.y, obstacle.z])
+        const newObstacle = new Obstacle(obstacle.id, [obstacle.x, obstacle.y, obstacle.z]);
         obstacles.push(newObstacle)
       }
       // Log the obstacles array
@@ -198,6 +304,84 @@ async function getObstacles() {
     console.log(error)
   }
 }
+
+
+async function getTrafficLights() {
+  try {
+    // Send a GET request to the agent server to retrieve the obstacle positions
+    let response = await fetch(agent_server_uri + "getTrafficLights")
+
+    // Check if the response was successful
+    if (response.ok) {
+      // Parse the response as JSON
+      let result = await response.json()
+
+      // Create new obstacles and add them to the obstacles array
+      for (const trafficLight of result.positions) {
+        const newTrafficLight = new TrafficLight(trafficLight.id, [trafficLight.x, trafficLight.y, trafficLight.z])
+        newTrafficLight.color = trafficLight.condition ? [1, 0, 0, 1] : [0, 1, 0, 1]
+        trafficLights.push(newTrafficLight)
+      }
+      // Log the obstacles array
+      console.log("TrafficLights:", trafficLights)
+    }
+
+  } catch (error) {
+    // Log any errors that occur during the request
+    console.log(error)
+  }
+}
+
+async function getRoads() {
+  try {
+    // Send a GET request to the agent server to retrieve the obstacle positions
+    let response = await fetch(agent_server_uri + "getRoads")
+
+    // Check if the response was successful
+    if (response.ok) {
+      // Parse the response as JSON
+      let result = await response.json()
+
+      // Create new obstacles and add them to the obstacles array
+      for (const road of result.positions) {
+        const newRoad = new Road(road.id, [road.x, road.y, road.z])
+        roads.push(newRoad)
+      }
+      // Log the obstacles array
+      console.log("TrafficLights:", road)
+    }
+
+  } catch (error) {
+    // Log any errors that occur during the request
+    console.log(error)
+  }
+}
+
+async function getDestination() {
+  try {
+    // Send a GET request to the agent server to retrieve the obstacle positions
+    let response = await fetch(agent_server_uri + "getDestination")
+
+    // Check if the response was successful
+    if (response.ok) {
+      // Parse the response as JSON
+      let result = await response.json()
+
+      // Create new obstacles and add them to the obstacles array
+      for (const destination of result.positions) {
+        const newDestination = new Road(destination.id, [destination.x, destination.y, destination.z])
+        destinations.push(newDestination)
+      }
+      // Log the obstacles array
+      console.log("TrafficLights:", destinations)
+    }
+
+  } catch (error) {
+    // Log any errors that occur during the request
+    console.log(error)
+  }
+}
+
 
 /*
  * Updates the agent positions by sending a request to the agent server.
@@ -211,6 +395,7 @@ async function update() {
     if (response.ok) {
       // Retrieve the updated agent positions
       await getAgents()
+      await getTrafficLights()
       // Log a message indicating that the agents have been updated
       console.log("Updated agents")
     }
@@ -231,46 +416,32 @@ async function update() {
  * @param {WebGLVertexArrayObject} obstaclesVao - The vertex array object for obstacles.
  * @param {Object} obstaclesBufferInfo - The buffer information for obstacles.
  */
-async function drawScene(gl, programInfo, agentsVao, agentsBufferInfo, obstaclesVao, obstaclesBufferInfo) {
-  // Resize the canvas to match the display size
+async function drawScene(gl, Objects) {
   twgl.resizeCanvasToDisplaySize(gl.canvas);
-
-  // Set the viewport to match the canvas size
   gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
 
-  // Set the clear color and enable depth testing
   gl.clearColor(0.2, 0.2, 0.2, 1);
   gl.enable(gl.DEPTH_TEST);
-
-  // Clear the color and depth buffers
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-  // Use the program
   gl.useProgram(programInfo.program);
 
-  // Set up the view-projection matrix
   const viewProjectionMatrix = setupWorldView(gl);
 
-  // Set the distance for rendering
-  const distance = 1
+  drawAgent(agents, Objects.car.vao, Objects.car.bufferInfo, viewProjectionMatrix);
+  drawAgent(obstacles, Objects.building.vao, Objects.building.bufferInfo, viewProjectionMatrix);
+  drawAgent(trafficLights, Objects.traffic_light.vao, Objects.traffic_light.bufferInfo, viewProjectionMatrix);
+  drawAgent(roads, Objects.road.vao, Objects.road.bufferInfo, viewProjectionMatrix);
+  drawAgent(destinations, Objects.destination.vao, Objects.destination.bufferInfo, viewProjectionMatrix);
 
-  // Draw the agents
-  drawAgents(distance, agentsVao, agentsBufferInfo, viewProjectionMatrix)
-  // Draw the obstacles
-  drawObstacles(distance, obstaclesVao, obstaclesBufferInfo, viewProjectionMatrix)
-
-  // Increment the frame count
-  frameCount++
-
-  // Update the scene every 30 frames
+  frameCount++;
   if (frameCount % 30 == 0) {
-    frameCount = 0
-    await update()
+    frameCount = 0;
+    await update();
   }
-
-  // Request the next frame
-  requestAnimationFrame(() => drawScene(gl, programInfo, agentsVao, agentsBufferInfo, obstaclesVao, obstaclesBufferInfo))
+  requestAnimationFrame(() => drawScene(gl, Objects));
 }
+
 
 /*
  * Draws the agents.
@@ -280,74 +451,33 @@ async function drawScene(gl, programInfo, agentsVao, agentsBufferInfo, obstacles
  * @param {Object} agentsBufferInfo - The buffer information for agents.
  * @param {Float32Array} viewProjectionMatrix - The view-projection matrix.
  */
-function drawAgents(distance, agentsVao, agentsBufferInfo, viewProjectionMatrix) {
-  // Bind the vertex array object for agents
-  gl.bindVertexArray(agentsVao);
 
-  // Iterate over the agents
-  for (const agent of agents) {
+function drawAgent(list, inVao, inBufferInfo, viewProjectionMatrix) {
+  gl.bindVertexArray(inVao);
 
+  for (const agent of list) {
     // Create the agent's transformation matrix
-    const cube_trans = twgl.v3.create(...agent.position);
-    const cube_scale = twgl.v3.create(...agent.scale);
+    const trans = twgl.v3.create(...agent.position);
+    const scale = twgl.v3.create(...agent.scale);
 
     // Calculate the agent's matrix
-    agent.matrix = twgl.m4.translate(viewProjectionMatrix, cube_trans);
+    agent.matrix = twgl.m4.translate(viewProjectionMatrix, trans);
     agent.matrix = twgl.m4.rotateX(agent.matrix, agent.rotation[0]);
     agent.matrix = twgl.m4.rotateY(agent.matrix, agent.rotation[1]);
     agent.matrix = twgl.m4.rotateZ(agent.matrix, agent.rotation[2]);
-    agent.matrix = twgl.m4.scale(agent.matrix, cube_scale);
+    agent.matrix = twgl.m4.scale(agent.matrix, scale);
 
     // Set the uniforms for the agent
     let uniforms = {
       u_matrix: agent.matrix,
+      u_color: agent.color,
     }
 
     // Set the uniforms and draw the agent
     twgl.setUniforms(programInfo, uniforms);
-    twgl.drawBufferInfo(gl, agentsBufferInfo);
-
+    twgl.drawBufferInfo(gl, inBufferInfo);
   }
 }
-
-
-/*
- * Draws the obstacles.
- *
- * @param {Number} distance - The distance for rendering.
- * @param {WebGLVertexArrayObject} obstaclesVao - The vertex array object for obstacles.
- * @param {Object} obstaclesBufferInfo - The buffer information for obstacles.
- * @param {Float32Array} viewProjectionMatrix - The view-projection matrix.
- */
-function drawObstacles(distance, obstaclesVao, obstaclesBufferInfo, viewProjectionMatrix) {
-  // Bind the vertex array object for obstacles
-  gl.bindVertexArray(obstaclesVao);
-
-  // Iterate over the obstacles
-  for (const obstacle of obstacles) {
-    // Create the obstacle's transformation matrix
-    const cube_trans = twgl.v3.create(...obstacle.position);
-    const cube_scale = twgl.v3.create(...obstacle.scale);
-
-    // Calculate the obstacle's matrix
-    obstacle.matrix = twgl.m4.translate(viewProjectionMatrix, cube_trans);
-    obstacle.matrix = twgl.m4.rotateX(obstacle.matrix, obstacle.rotation[0]);
-    obstacle.matrix = twgl.m4.rotateY(obstacle.matrix, obstacle.rotation[1]);
-    obstacle.matrix = twgl.m4.rotateZ(obstacle.matrix, obstacle.rotation[2]);
-    obstacle.matrix = twgl.m4.scale(obstacle.matrix, cube_scale);
-
-    // Set the uniforms for the obstacle
-    let uniforms = {
-      u_matrix: obstacle.matrix,
-    }
-
-    // Set the uniforms and draw the obstacle
-    twgl.setUniforms(programInfo, uniforms);
-    twgl.drawBufferInfo(gl, obstaclesBufferInfo);
-
-  }
-}
-
 /*
  * Sets up the world view by creating the view-projection matrix.
  *
@@ -416,100 +546,6 @@ function setupUI() {
       // Update the camera position when the slider value changes
       cameraPosition.z = value
     });
-}
-
-function generateData(size) {
-  let arrays =
-  {
-    a_position: {
-      numComponents: 3,
-      data: [
-        // Front Face
-        -0.5, -0.5, 0.5,
-        0.5, -0.5, 0.5,
-        0.5, 0.5, 0.5,
-        -0.5, 0.5, 0.5,
-
-        // Back face
-        -0.5, -0.5, -0.5,
-        -0.5, 0.5, -0.5,
-        0.5, 0.5, -0.5,
-        0.5, -0.5, -0.5,
-
-        // Top face
-        -0.5, 0.5, -0.5,
-        -0.5, 0.5, 0.5,
-        0.5, 0.5, 0.5,
-        0.5, 0.5, -0.5,
-
-        // Bottom face
-        -0.5, -0.5, -0.5,
-        0.5, -0.5, -0.5,
-        0.5, -0.5, 0.5,
-        -0.5, -0.5, 0.5,
-
-        // Right face
-        0.5, -0.5, -0.5,
-        0.5, 0.5, -0.5,
-        0.5, 0.5, 0.5,
-        0.5, -0.5, 0.5,
-
-        // Left face
-        -0.5, -0.5, -0.5,
-        -0.5, -0.5, 0.5,
-        -0.5, 0.5, 0.5,
-        -0.5, 0.5, -0.5
-      ].map(e => size * e)
-    },
-    a_color: {
-      numComponents: 4,
-      data: [
-        // Front face
-        1, 0, 0, 1, // v_1
-        1, 0, 0, 1, // v_1
-        1, 0, 0, 1, // v_1
-        1, 0, 0, 1, // v_1
-        // Back Face
-        0, 1, 0, 1, // v_2
-        0, 1, 0, 1, // v_2
-        0, 1, 0, 1, // v_2
-        0, 1, 0, 1, // v_2
-        // Top Face
-        0, 0, 1, 1, // v_3
-        0, 0, 1, 1, // v_3
-        0, 0, 1, 1, // v_3
-        0, 0, 1, 1, // v_3
-        // Bottom Face
-        1, 1, 0, 1, // v_4
-        1, 1, 0, 1, // v_4
-        1, 1, 0, 1, // v_4
-        1, 1, 0, 1, // v_4
-        // Right Face
-        0, 1, 1, 1, // v_5
-        0, 1, 1, 1, // v_5
-        0, 1, 1, 1, // v_5
-        0, 1, 1, 1, // v_5
-        // Left Face
-        1, 0, 1, 1, // v_6
-        1, 0, 1, 1, // v_6
-        1, 0, 1, 1, // v_6
-        1, 0, 1, 1, // v_6
-      ]
-    },
-    indices: {
-      numComponents: 3,
-      data: [
-        0, 1, 2, 0, 2, 3,    // Front face
-        4, 5, 6, 4, 6, 7,    // Back face
-        8, 9, 10, 8, 10, 11,  // Top face
-        12, 13, 14, 12, 14, 15, // Bottom face
-        16, 17, 18, 16, 18, 19, // Right face
-        20, 21, 22, 20, 22, 23  // Left face
-      ]
-    }
-  };
-
-  return arrays;
 }
 
 function generateObstacleData(size) {
@@ -605,5 +641,6 @@ function generateObstacleData(size) {
   };
   return arrays;
 }
+
 
 main()

@@ -215,7 +215,7 @@ async function getObstacles() {
 
       // Create new obstacles and add them to the obstacles array
       for (const obstacle of result.positions) {
-        const newObstacle = new Agents(obstacle.id, [obstacle.x, obstacle.y, obstacle.z])
+        const newObstacle = new Obstacle(obstacle.id, [obstacle.x, obstacle.y, obstacle.z])
         newObstacle.color = [0.5, 0.5, 0.5, 1];
         obstacles.push(newObstacle)
       }
@@ -281,9 +281,6 @@ async function drawScene(gl, programInfo, agentsVao, agentsBufferInfo, obstacles
   // Set up the view-projection matrix
   const viewProjectionMatrix = setupWorldView(gl); // Identity ?
 
-  // Set the distance for rendering
-  const distance = 1 // ????
-
   // Draw the agents
   drawAgents(
     // distance,
@@ -316,57 +313,56 @@ async function drawScene(gl, programInfo, agentsVao, agentsBufferInfo, obstacles
  * @param {Float32Array} viewProjectionMatrix - The view-projection matrix.
  */
 function drawAgents(agentsVao, agentsBufferInfo, viewProjectionMatrix) {
-  function drawAgents(agentsVao, agentsBufferInfo, viewProjectionMatrix) {
-    // Bind the vertex array object for agents
-    gl.bindVertexArray(agentsVao);
+  // Bind the vertex array object for agents
+  gl.bindVertexArray(agentsVao);
 
-    // Iterate over the agents
-    for (const agent of agents) {
-      // Calculate the agent's position
+  // Iterate over the agents
+  for (const agent of agents) {
+    // Calculate the agent's position
 
-      // Create the agent's transformation matrix
+    // Create the agent's transformation matrix
 
-      // Transform Car Matrix
-      const car_trans = m4.translation(...agent.position);
-      // Rotation Car Matrixes
-      const car_rotX = m4.rotationX(agent.rotation[0]);
-      const car_rotY = m4.rotationY(agent.rotation[1]);
-      const car_rotZ = m4.rotationZ(agent.rotation[2]);
-      // Scale Car Matrix
-      const car_scale = m4.scale(...agent.scale);
+    // Transform Car Matrix
+    const car_trans = m4.translation(...agent.position);
+    // Rotation Car Matrixes
+    const car_rotX = m4.rotationX(agent.rotation[0]);
+    const car_rotY = m4.rotationY(agent.rotation[1]);
+    const car_rotZ = m4.rotationZ(agent.rotation[2]);
+    // Scale Car Matrix
+    const car_scale = m4.scale(...agent.scale);
 
 
-      // Calculate the agent's matrix
-      let car_transforms = m4.identity();
+    // Calculate the agent's matrix
+    let car_transforms = m4.identity();
 
-      car_transforms = m4.multiply(car_trans, car_transforms);
-      car_transforms = m4.multiply(car_rotX, car_transforms);
-      car_transforms = m4.multiply(car_rotY, car_transforms);
-      car_transforms = m4.multiply(car_rotZ, car_transforms);
-      car_transforms = m4.multiply(car_scale, car_transforms);
+    car_transforms = m4.multiply(car_trans, car_transforms);
+    car_transforms = m4.multiply(car_rotX, car_transforms);
+    car_transforms = m4.multiply(car_rotY, car_transforms);
+    car_transforms = m4.multiply(car_rotZ, car_transforms);
+    car_transforms = m4.multiply(car_scale, car_transforms);
 
-      // World view ¿?
-      worldViewProjection = m4.multiply(viewProjectionMatrix, car_transforms);
+    // World view ¿?
+    worldViewProjection = m4.multiply(viewProjectionMatrix, car_transforms);
 
-      // Set the uniforms for the agent
-      let uniforms = {
-        u_world: car_transforms, // ¿?
+    // Set the uniforms for the agent
+    let uniforms = {
+      u_world: car_transforms, // ¿?
 
-        u_worldInverseTransform: transformsInverseTranspose,
-        u_worldViewProjection: worldViewProjection,
-        u_ambientColor: agent.color,
-        u_diffuseColor: agent.color,
-        u_specularColor: agent.color,
-        u_shininess: Objects.car.model.shininess,
-
-      }
-
-      // Set the uniforms and draw the agent
-      twgl.setUniforms(programInfo, uniforms);
-      twgl.drawBufferInfo(gl, agentsBufferInfo);
+      u_worldInverseTransform: transformsInverseTranspose,
+      u_worldViewProjection: worldViewProjection,
+      u_ambientColor: agent.color,
+      u_diffuseColor: agent.color,
+      u_specularColor: agent.color,
+      u_shininess: Objects.car.model.shininess,
 
     }
+
+    // Set the uniforms and draw the agent
+    twgl.setUniforms(programInfo, uniforms);
+    twgl.drawBufferInfo(gl, agentsBufferInfo);
+
   }
+
 
 
   /*
