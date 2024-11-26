@@ -45,7 +45,7 @@ class Traffic_Light(Agent):
     Traffic lights agents will change conditions within time
     from green to red and from red to green
     """
-    def __init__(self, unique_id, model, timeToChange,condition):
+    def __init__( unique_id, model, condition, timeToChange, self):
         super().__init__(unique_id, model)
 
         self.condition = condition
@@ -60,7 +60,7 @@ class Road(Agent):
     """
     Road agent. Determines where the cars can move, and in which direction.
     """
-    def __init__(self, unique_id, model, direction):
+    def __init__(unique_id, model, direction, self):
         """
         Creates a new road.
         Args:
@@ -74,21 +74,14 @@ class Obstacle(Agent):
     """
     Road agent. Determines where the cars can move, and in which direction.
     """
-    def __init__(self, unique_id, model, direction):
-        """
-        Creates a new road.
-        Args:
-            unique_id: The agent's ID
-            model: Model reference for the agent
-            direction: Direction where the cars can move
-        """
+    def __init__(unique_id, model):
         super().__init__(unique_id, model)
         self.direction = direction
 class Destination(Agent):
     """
     Road agent. Determines where the cars can move, and in which direction.
     """
-    def __init__(self, unique_id, model, direction):
+    def __init__(unique_id, model):
         """
         Creates a new road.
         Args:
