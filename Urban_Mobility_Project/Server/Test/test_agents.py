@@ -1,5 +1,6 @@
 from mesa import Agent
 
+
 class RandomAgent(Agent):
     """
     Agent that moves randomly.
@@ -7,6 +8,7 @@ class RandomAgent(Agent):
         unique_id: Agent's ID
         direction: Randomly chosen direction chosen from one of eight directions
     """
+
     def __init__(self, unique_id, model):
         """
         Creates a new random agent.
@@ -23,20 +25,22 @@ class RandomAgent(Agent):
         """
         possible_steps = self.model.grid.get_neighborhood(
             self.pos,
-            moore=True, # Boolean for whether to use Moore neighborhood (including diagonals) or Von Neumann (only up/down/left/right).
+            # Boolean for whether to use Moore neighborhood (including diagonals) or Von Neumann (only up/down/left/right).
+            moore=True,
             include_center=True)
 
         # Checks which grid cells are empty
         freeSpaces = list(map(self.model.grid.is_cell_empty, possible_steps))
 
-        next_moves = [p for p,f in zip(possible_steps, freeSpaces) if f == True]
+        next_moves = [p for p, f in zip(
+            possible_steps, freeSpaces) if f == True]
 
         next_move = self.random.choice(next_moves)
 
         # Now move:
         if self.random.random() < 0.5:
             self.model.grid.move_agent(self, next_move)
-            self.steps_taken+=1
+            self.steps_taken += 1
 
     def step(self):
         """
@@ -44,10 +48,12 @@ class RandomAgent(Agent):
         """
         self.move()
 
+
 class ObstacleAgent(Agent):
     """
     Obstacle agent. Just to add obstacles to the grid.
     """
+
     def __init__(self, unique_id, model):
         super().__init__(unique_id, model)
 
