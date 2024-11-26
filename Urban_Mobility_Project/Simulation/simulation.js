@@ -8,7 +8,6 @@ WebGl frontend simulation
 'use strict';
 
 import * as twgl from 'twgl.js';
-import * as twgl from 'twgl.js';
 import GUI from 'lil-gui';
 import { v3, m4 } from './libs/3D_libs.js';
 
@@ -51,7 +50,7 @@ const Objects = {
 }
 
 // Objects class
-class Agents {
+class Car {
   constructor(id, position = [0, 0, 0], rotation = [0, 0, 0], scale = [1, 1, 1]) {
     this.id = id;
     this.position = position;
@@ -59,6 +58,15 @@ class Agents {
     this.scale = scale;
     this.color = undefined;
     this.matrix = m4.identity();
+  }
+}
+
+class Obstacle {
+  constructor(id, position = [0, 0, 0], scale = [0.9, 0.9, 0.9]) {
+    this.id = id;
+    this.position = position;
+    this.scale = scale;
+    this.color = [0.6, 0.6, 0.6, 1] // gray
   }
 }
 
@@ -467,6 +475,6 @@ function drawAgents(agentsVao, agentsBufferInfo, viewProjectionMatrix) {
         cameraPosition.z = value
       });
   }
+}
 
-
-  main()
+main()
