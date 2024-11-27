@@ -5,7 +5,7 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS, cross_origin
 from model import City
-from agents import Car, Obstacle, Traffic_Light,Road ,Destination
+from agents import Car, Obstacle, Traffic_Light, Road, Destination
 
 # Size of the board:
 number_agents = 10
@@ -20,6 +20,8 @@ cors = CORS(app, origins=['http://localhost'])
 
 # This route will be used to send the parameters of the simulation to the server.
 # The servers expects a POST request with the parameters in a.json.
+
+
 @app.route('/init', methods=['POST'])
 @cross_origin()
 def initModel():
@@ -39,13 +41,15 @@ def initModel():
             city = City(width, height)
 
             # Return a message to saying that the model was created successfully
-            return jsonify({"message":"Parameters recieved, model initiated."})
+            return jsonify({"message": "Parameters recieved, model initiated."})
 
         except Exception as e:
             print(e)
-            return jsonify({"message":"Erorr initializing the model"}), 500
+            return jsonify({"message": "Erorr initializing the model"}), 500
 
 # This route will be used to get the positions of the agents
+
+
 @app.route('/getAgents', methods=['GET'])
 @cross_origin()
 def getAgents():
@@ -57,17 +61,20 @@ def getAgents():
         # The y coordinate is set to 1, since the agents are in a 3D world. The z coordinate corresponds to the row (y coordinate) of the grid in mesa.
         try:
             carPosition = [
-                {"id": str(agent.unique_id), "x": x, "y":1, "z":z}
+                {"id": str(agent.unique_id), "x": x, "y": 0.5, "z": z,
+                 "lastPosition": agent.lastPosition}
                 for agents, (x, z) in city.grid.coord_iter()
                 for agent in agents if isinstance(agent, Car)
             ]
 
-            return jsonify({'positions':carPosition})
+            return jsonify({'positions': carPosition})
         except Exception as e:
             print(e)
-            return jsonify({"message":"Error with the agent positions"}), 500
+            return jsonify({"message": "Error with the agent positions"}), 500
 
 # This route will be used to get the positions of the obstacles
+
+
 @app.route('/getObstacles', methods=['GET'])
 @cross_origin()
 def getObstacles():
@@ -78,18 +85,18 @@ def getObstacles():
 
     if request.method == 'GET':
         try:
-        # Get the positions of the obstacles and return them to WebGL in JSON.json.t.
-        # Same as before, the positions are sent as a list of dictionaries, where each dictionary has the id and position of an obstacle.
+            # Get the positions of the obstacles and return them to WebGL in JSON.json.t.
+            # Same as before, the positions are sent as a list of dictionaries, where each dictionary has the id and position of an obstacle.
             obstaclePosition = [
-                {"id": str(agent.unique_id), "x": x, "y":1, "z":z}
+                {"id": str(agent.unique_id), "x": x, "y": 1.5, "z": z}
                 for agents, (x, z) in city.grid.coord_iter()
                 for agent in agents if isinstance(agent, Obstacle)
             ]
 
-            return jsonify({'positions':obstaclePosition})
+            return jsonify({'positions': obstaclePosition})
         except Exception as e:
             print(e)
-            return jsonify({"message":"Error with obstacle positions"}), 500
+            return jsonify({"message": "Error with obstacle positions"}), 500
 
 
 @app.route('/getTrafficLights', methods=['GET'])
@@ -102,18 +109,19 @@ def getTrafficLights():
 
     if request.method == 'GET':
         try:
-        # Get the positions of the obstacles and return them to WebGL in JSON.json.t.
-        # Same as before, the positions are sent as a list of dictionaries, where each dictionary has the id and position of an obstacle.
+            # Get the positions of the obstacles and return them to WebGL in JSON.json.t.
+            # Same as before, the positions are sent as a list of dictionaries, where each dictionary has the id and position of an obstacle.
             trafficLightPosition = [
-                {"id": str(agent.unique_id), "x": x, "y":1, "z":z, "condition":agent.condition}
+                {"id": str(agent.unique_id), "x": x, "y": 2,
+                 "z": z, "condition": agent.condition}
                 for agents, (x, z) in city.grid.coord_iter()
                 for agent in agents if isinstance(agent, Traffic_Light)
             ]
 
-            return jsonify({'positions':trafficLightPosition})
+            return jsonify({'positions': trafficLightPosition})
         except Exception as e:
             print(e)
-            return jsonify({"message":"Error with obstacle positions"}), 500
+            return jsonify({"message": "Error with obstacle positions"}), 500
 
 
 @app.route('/getRoads', methods=['GET'])
@@ -126,18 +134,18 @@ def getRoads():
 
     if request.method == 'GET':
         try:
-        # Get the positions of the obstacles and return them to WebGL in JSON.json.t.
-        # Same as before, the positions are sent as a list of dictionaries, where each dictionary has the id and position of an obstacle.
+            # Get the positions of the obstacles and return them to WebGL in JSON.json.t.
+            # Same as before, the positions are sent as a list of dictionaries, where each dictionary has the id and position of an obstacle.
             roadPosition = [
-                {"id": str(agent.unique_id), "x": x, "y":1, "z":z}
+                {"id": str(agent.unique_id), "x": x, "y": 0.5, "z": z}
                 for agents, (x, z) in city.grid.coord_iter()
                 for agent in agents if isinstance(agent, Road)
             ]
 
-            return jsonify({'positions':roadPosition})
+            return jsonify({'positions': roadPosition})
         except Exception as e:
             print(e)
-            return jsonify({"message":"Error with obstacle positions"}), 500
+            return jsonify({"message": "Error with obstacle positions"}), 500
 
 
 @app.route('/getDestination', methods=['GET'])
@@ -150,35 +158,37 @@ def getDestination():
 
     if request.method == 'GET':
         try:
-        # Get the positions of the obstacles and return them to WebGL in JSON.json.t.
-        # Same as before, the positions are sent as a list of dictionaries, where each dictionary has the id and position of an obstacle.
+            # Get the positions of the obstacles and return them to WebGL in JSON.json.t.
+            # Same as before, the positions are sent as a list of dictionaries, where each dictionary has the id and position of an obstacle.
             destinationPosition = [
-                {"id": str(agent.unique_id), "x": x, "y":1, "z":z}
+                {"id": str(agent.unique_id), "x": x, "y": 0.5, "z": z}
                 for agents, (x, z) in city.grid.coord_iter()
                 for agent in agents if isinstance(agent, Destination)
             ]
 
-            return jsonify({'positions':destinationPosition})
+            return jsonify({'positions': destinationPosition})
         except Exception as e:
             print(e)
-            return jsonify({"message":"Error with obstacle positions"}), 500
+            return jsonify({"message": "Error with obstacle positions"}), 500
 
 # This route will be used to update the model
+
+
 @app.route('/update', methods=['GET'])
 @cross_origin()
 def updateModel():
     global currentStep, city
     if request.method == 'GET':
         try:
-        # Update the model and return a message to WebGL saying that the model was updated successfully
+            # Update the model and return a message to WebGL saying that the model was updated successfully
             city.step()
             currentStep += 1
-            return jsonify({'message':f'Model updated to step {currentStep}.', 'currentStep':currentStep})
+            return jsonify({'message': f'Model updated to step {currentStep}.', 'currentStep': currentStep})
         except Exception as e:
             print(e)
-            return jsonify({"message":"Error during step."}), 500
+            return jsonify({"message": "Error during step."}), 500
 
 
-if __name__=='__main__':
+if __name__ == '__main__':
     # Run the flask server in port 8585
     app.run(host="localhost", port=8585, debug=True)
