@@ -11,7 +11,7 @@ from agents import Car, Traffic_Light, Road, Obstacle, Destination
 from model import City
 from mesa.visualization import CanvasGrid, BarChartModule
 from mesa.visualization import ModularServer
-
+ # {"Left" : "Right"}
 
 def agent_portrayal(agent):
     if agent is None:
