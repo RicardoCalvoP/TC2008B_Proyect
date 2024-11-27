@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "kill-port": "^2.0.1",
     "mesa": "^0.7.2"
   }
 }

@@ -37,7 +37,7 @@ def agent_portrayal(agent):
 
     if (isinstance(agent, Traffic_Light)):
         portrayal["Color"] = "red" if not agent.condition else "green"
-        portrayal["Layer"] = 0
+        portrayal["Layer"] = 3
         portrayal["w"] = 0.8
         portrayal["h"] = 0.8
 

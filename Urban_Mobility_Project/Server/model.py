@@ -41,7 +41,7 @@ class City(Model):
             dataDictionary = json.load(open("city_files/mapDictionary.json"))
 
             # Load the map file. The map file is a text file where each character represents an agent.
-            with open('city_files/2022_base.txt') as baseFile:
+            with open('city_files/2024_base.txt') as baseFile:
                 lines = baseFile.readlines()
 
                 # Goes through each character in the map file and creates the corresponding agent.
@@ -103,6 +103,11 @@ class City(Model):
                             self.traffic_lights.append(agent)
                             self.streets.append((pos, agent.direction))
 
+                            agent = Road(
+                                f"r{r*self.width+c}", direction, self)
+                            self.grid.place_agent(
+                                agent, pos)
+
                         # Buildings
                         elif col == "#":
                             agent = Obstacle(f"ob{r*self.width+c}", self)
@@ -116,6 +121,8 @@ class City(Model):
                             self.grid.place_agent(
                                 agent, pos)
                             self.destinations.append(pos)
+                            self.streets.append((pos, "destination"))
+
             for i in range(4):
                 destination = random.choice(self.destinations)
                 pos = self.carSpawns[i]
@@ -125,7 +132,7 @@ class City(Model):
                     agent, pos)
                 self.schedule.add(agent)
                 self.num_cars += 1
-
+            print(self.streets)
         except FileNotFoundError:
             print(f"Error: No se encontró el archivo. en model")
         except Exception as e:

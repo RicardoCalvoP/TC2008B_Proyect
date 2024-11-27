@@ -36,6 +36,7 @@ class Car(Agent):
         self.steps_taken = 0
         self.path = []
         self.pos = position
+        self.lastPosition = position
         self.destination = destination
         self.streets = streets
         self.last_position = position
@@ -71,8 +72,12 @@ class Car(Agent):
         # Verificar si la nueva celda está libre
         agents_in_cell = self.model.grid.get_cell_list_contents([new_position])
         if not any(isinstance(agent, Car) for agent in agents_in_cell):  # Celda libre
-
+            self.last_position = self.pos
+            print("last position", self.last_position)
+            print("position", self.pos)
             self.model.grid.move_agent(self, new_position)
+            print("last position", self.last_position)
+            print("position", self.pos)
 
     def calculate_new_position(self, position, direction):
         """
