@@ -55,7 +55,7 @@ def agent_portrayal(agent):
     return portrayal
 
 
-with open('city_files/2022_base.txt') as baseFile:
+with open('city_files/2024_base.txt') as baseFile:
     lines = [line.strip() for line in baseFile]  # Remove newline characters
     width = len(lines[0])  # Correct width without '\n'
     height = len(lines)  # Number of lines gives the height
@@ -67,7 +67,7 @@ model_params = {
 
 
 print(width, height)
-grid = CanvasGrid(agent_portrayal, width, height, 500, 500)
+grid = CanvasGrid(agent_portrayal, width, height, width*20, height*20)
 
 server = ModularServer(City, [grid], "Traffic Base", model_params)
 
