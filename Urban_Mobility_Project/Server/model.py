@@ -101,7 +101,7 @@ class City(Model):
                                 agent, pos)
                             self.schedule.add(agent)
                             self.traffic_lights.append(agent)
-                            self.streets.append((pos, agent.direction))
+                            self.streets.append((pos, 's'))
 
                             agent = Road(
                                 f"r{r*self.width+c}", direction, self)
@@ -127,12 +127,11 @@ class City(Model):
                 destination = random.choice(self.destinations)
                 pos = self.carSpawns[i]
                 agent = Car(f"ca{self.num_cars+1000+i}", pos,
-                            destination, self.streets, self)
+                            destination, self)
                 self.grid.place_agent(
                     agent, pos)
                 self.schedule.add(agent)
                 self.num_cars += 1
-            print(self.streets)
         except FileNotFoundError:
             print(f"Error: No se encontró el archivo. en model")
         except Exception as e:
@@ -161,7 +160,7 @@ class City(Model):
                 destination = random.choice(self.destinations)
                 pos = self.carSpawns[i]
                 agent = Car(f"ca{self.num_cars+1000+i}", pos,
-                            destination, self.streets, self)
+                            destination, self)
                 self.grid.place_agent(
                     agent, pos)
                 self.schedule.add(agent)

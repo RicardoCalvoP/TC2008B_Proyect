@@ -88,7 +88,7 @@ def getObstacles():
             # Get the positions of the obstacles and return them to WebGL in JSON.json.t.
             # Same as before, the positions are sent as a list of dictionaries, where each dictionary has the id and position of an obstacle.
             obstaclePosition = [
-                {"id": str(agent.unique_id), "x": x, "y": 1.5, "z": z}
+                {"id": str(agent.unique_id), "x": x, "y": 1, "z": z}
                 for agents, (x, z) in city.grid.coord_iter()
                 for agent in agents if isinstance(agent, Obstacle)
             ]
