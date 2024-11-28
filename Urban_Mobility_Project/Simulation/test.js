@@ -7,7 +7,7 @@ import { load_obj } from "./Assets/ExtraFunctions/load_obj.js";
 import { v3, m4 } from "./libs/3D_libs.js";
 
 import building from "../Objects/building1.obj?raw";
-import car from "../Objects/car2.obj?raw";
+import car from "../Objects/Tank1.obj?raw";
 import cube from "../Objects/cube_normals.obj?raw";
 
 // import vsGLSL from './Assets/Shaders/vs_color.glsl?raw'
@@ -67,12 +67,6 @@ const Objects = {
 
 // Define the camera position
 const settings = {
-  // Speed in degrees
-  rotationSpeed: {
-    x: 0,
-    y: 30,
-    z: 0,
-  },
   cameraPosition: {
     x: 0,
     y: 40,
@@ -424,6 +418,7 @@ async function drawScene(gl, Objects) {
   let v3_lightPosition = v3.create(settings.lightPosition.x,
     settings.lightPosition.y,
     settings.lightPosition.z);
+
   let v3_cameraPosition = v3.create(settings.cameraPosition.x,
     settings.cameraPosition.y,
     settings.cameraPosition.z);
@@ -448,7 +443,7 @@ async function drawScene(gl, Objects) {
   drawAgent(destinations, Objects.destination.vao, Objects.destination.bufferInfo, viewProjectionMatrix);
 
   frameCount++;
-  if (frameCount % 30 == 0) {
+  if (frameCount % 1 == 0) {
     frameCount = 0;
     await update();
   }
@@ -577,22 +572,16 @@ function setupUI() {
 
   // Create a folder for the camera position
   const posFolder = gui.addFolder('Position:')
-
-  // Add a slider for the x-axis
   posFolder.add(settings.cameraPosition, 'x', -50, 50)
     .onChange(value => {
       // Update the camera position when the slider value changes
       settings.cameraPosition.x = value
     });
-
-  // Add a slider for the y-axis
   posFolder.add(settings.cameraPosition, 'y', -10, 75)
     .onChange(value => {
       // Update the camera position when the slider value changes
       settings.cameraPosition.y = value
     });
-
-  // Add a slider for the z-axis
   posFolder.add(settings.cameraPosition, 'z', -0.01, 50)
     .onChange(value => {
       // Update the camera position when the slider value changes
