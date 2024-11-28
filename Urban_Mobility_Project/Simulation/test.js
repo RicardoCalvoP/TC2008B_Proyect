@@ -141,7 +141,6 @@ const agent_server_uri = "http://localhost:8585/";
 // Initialize arrays to store agents and obstacles
 let agents = [];
 let trafficLights = [];
-let trafficLightsColors = [];
 const obstacles = [];
 const roads = [];
 const destinations = [];
@@ -250,14 +249,9 @@ async function getAgents() {
 
       for (const agent of result.positions) {
         const newAgent = new Car(agent.id, [agent.x, agent.y, agent.z])
-        newAgent.lastPosition = [agent.lastPosition[0], 1, agent.lastPosition[1]];
-        console.log("Last Position: ", newAgent.lastPosition)
-        console.log(" Position: ", newAgent.position)
+        newAgent.lastPosition = [agent.lastPosition[0], 0.5, agent.lastPosition[1]];
         agents.push(newAgent)
       }
-      // Log the agents array
-      console.log("Agents:", agents)
-
 
     }
 
@@ -394,6 +388,18 @@ async function update() {
   }
 }
 
+function calculateAngle(lastPosition, position) {
+  const vec1 = v3.subtract(position, lastPosition)
+  const vec2 = v3.create(0, 0, 1)
+  const u = v3.normalize(vec1);
+  const v = v3.normalize(vec2);
+
+  const dotProduct = v3.dot(u, v);
+  const clampedDot = Math.min(Math.max(dotProduct, -1.0), 1.0);
+
+  return Math.acos(clampedDot);
+}
+
 /*
  * Draws the scene by rendering the agents and obstacles.
  *
@@ -435,7 +441,7 @@ async function drawScene(gl, Objects) {
 
   const viewProjectionMatrix = setupWorldView(gl);
 
-  drawAgent(agents, Objects.car.vao, Objects.car.bufferInfo, viewProjectionMatrix);
+  drawCar(agents, Objects.car.vao, Objects.car.bufferInfo, viewProjectionMatrix);
   drawAgent(obstacles, Objects.building.vao, Objects.building.bufferInfo, viewProjectionMatrix);
   drawAgent(trafficLights, Objects.traffic_light.vao, Objects.traffic_light.bufferInfo, viewProjectionMatrix);
   drawAgent(roads, Objects.road.vao, Objects.road.bufferInfo, viewProjectionMatrix);
@@ -472,6 +478,39 @@ function drawAgent(list, inVao, inBufferInfo, viewProjectionMatrix) {
     agent.matrix = twgl.m4.translate(m4.identity(), trans);
     agent.matrix = twgl.m4.rotateX(agent.matrix, agent.rotation[0]);
     agent.matrix = twgl.m4.rotateY(agent.matrix, agent.rotation[1]);
+    agent.matrix = twgl.m4.rotateZ(agent.matrix, agent.rotation[2]);
+    agent.matrix = twgl.m4.scale(agent.matrix, scale);
+
+    let worldViewProjection = m4.multiply(viewProjectionMatrix, agent.matrix);
+    // Set the uniforms for the agent PHONG
+    let uniforms = {
+      u_world: agent.matrix,
+      u_worldViewProjection: worldViewProjection,
+      u_ambientColor: agent.color,
+      u_diffuseColor: agent.color,
+      u_specularColor: agent.color,
+      u_shininess: agent.shininess,
+    }
+
+    // Set the uniforms and draw the agent
+    twgl.setUniforms(programInfo, uniforms);
+    twgl.drawBufferInfo(gl, inBufferInfo);
+  }
+}
+function drawCar(list, inVao, inBufferInfo, viewProjectionMatrix) {
+  gl.bindVertexArray(inVao);
+
+  for (const agent of list) {
+    // Create the agent's transformation matrix
+
+    const trans = twgl.v3.create(...agent.position);
+    const scale = twgl.v3.create(...agent.scale);
+    const angle = calculateAngle(agent.lastPosition, agent.position);
+    agent.rotation[1] = m4.rotationY(angle)
+    // Calculate the agent's matrix
+    agent.matrix = twgl.m4.translate(m4.identity(), trans);
+    agent.matrix = twgl.m4.rotateX(agent.matrix, agent.rotation[0]);
+    agent.matrix = m4.multiply(agent.matrix, agent.rotation[1]);
     agent.matrix = twgl.m4.rotateZ(agent.matrix, agent.rotation[2]);
     agent.matrix = twgl.m4.scale(agent.matrix, scale);
 

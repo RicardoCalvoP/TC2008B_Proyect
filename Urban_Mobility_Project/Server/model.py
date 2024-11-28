@@ -156,13 +156,13 @@ class City(Model):
         self.schedule.step()
         self.num_steps += 1
 
-        if self.num_steps % 10 == 0:
-            for i in range(4):
-                destination = random.choice(self.destinations)
-                pos = self.carSpawns[i]
-                agent = Car(f"ca{self.num_cars+1000+i}", pos,
-                            destination, self.streets, self)
-                self.grid.place_agent(
-                    agent, pos)
-                self.schedule.add(agent)
-                self.num_cars += 1
+        # if self.num_steps % 10 == 0:
+        #     for i in range(4):
+        #         destination = random.choice(self.destinations)
+        #         pos = self.carSpawns[i]
+        #         agent = Car(f"ca{self.num_cars+1000+i}", pos,
+        #                     destination, self.streets, self)
+        #         self.grid.place_agent(
+        #             agent, pos)
+        #         self.schedule.add(agent)
+        #         self.num_cars += 1
