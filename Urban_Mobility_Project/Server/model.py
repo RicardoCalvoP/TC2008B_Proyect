@@ -155,13 +155,20 @@ class City(Model):
         self.schedule.step()
         self.num_steps += 1
 
-        if self.num_steps % 10 == 0:
-            for i in range(4):
+        if self.num_steps % 2 == 0:
+            # Identificar esquinas libres
+            free_corners = [corner for corner in self.carSpawns if not any(isinstance(agent, Car) for agent in self.grid.get_cell_list_contents(corner))]
+
+            if len(free_corners) == 0:
+                print("No hay esquinas disponibles. La simulación se detiene.")
+                self.running = False  # Detener la simulación
+                return
+
+            # Crear coches en las esquinas libres
+            for corner in free_corners:
                 destination = random.choice(self.destinations)
-                pos = self.carSpawns[i]
-                agent = Car(f"ca{self.num_cars+1000+i}", pos,
-                            destination, self)
-                self.grid.place_agent(
-                    agent, pos)
+                pos = corner
+                agent = Car(f"ca{self.num_cars+1000}", pos, destination, self)
+                self.grid.place_agent(agent, pos)
                 self.schedule.add(agent)
                 self.num_cars += 1
