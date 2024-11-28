@@ -16,12 +16,18 @@ import json
 
 class City(Model):
     """
-    Creates a model with the agents
-    [More description]
+    Creates a model to control and place the agents that are part of the simulation,
+    advances model by step which moves cars and changes state of traffic lights
     """
 
     def __init__(self, width, height):
-        super().__init__(seed=42)  # Ask what seed=42 means
+        '''
+        Creates a new model.
+        Args:
+            width: width of the grid
+            height: height of the grid
+        '''
+        super().__init__(seed=42)
         self.grid = MultiGrid(width, height, torus=False)
         self.schedule = RandomActivation(self)
         self.running = True
@@ -101,7 +107,7 @@ class City(Model):
                                 agent, pos)
                             self.schedule.add(agent)
                             self.traffic_lights.append(agent)
-                            self.streets.append((pos, 's'))
+                            self.streets.append((pos, agent.direction))
 
                             agent = Road(
                                 f"r{r*self.width+c}", direction, self)
@@ -127,11 +133,12 @@ class City(Model):
                 destination = random.choice(self.destinations)
                 pos = self.carSpawns[i]
                 agent = Car(f"ca{self.num_cars+1000+i}", pos,
-                            destination, self)
+                            destination, self.streets, self)
                 self.grid.place_agent(
                     agent, pos)
                 self.schedule.add(agent)
                 self.num_cars += 1
+            print(self.streets)
         except FileNotFoundError:
             print(f"Error: No se encontró el archivo. en model")
         except Exception as e:
