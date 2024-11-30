@@ -36,9 +36,13 @@ En resumen, esta simulación busca replicar de forma realista el comportamiento 
 
 ---
 
-## Diseño de los Agentes (**PEAS** Framework)
-
+## Diseño de los Agentes
 **Agente Coche**:
+
+Objetivo: Tiene como objetivo llegar a la posición de destino a partir del camino generado.
+
+**PEAS**
+
   - Propósito (Performance): El agente coche tiene como objetivo principal llegar a su destino desde una posición inicial, para lograrlo este debe evitar obstáculos como edificios y otros coches. Este debe de seguir un camino definido por las calles y respetar sus direcciones, aparte de obedecer las señales de tránsito como lo son los semáforos en rojo o verde.
 
   - Entorno (Environment): En el modelo nuestro coche se encuentran edificios los cuales se toman como obstaculos, calles con direcciones, otros coches, semaforos con estados de rojo y verde los cuales mantienen controlan si paran o no los coches, y nuestros destinos que harán que desaparezcan los coches una vez lleguen.
@@ -48,6 +52,8 @@ En resumen, esta simulación busca replicar de forma realista el comportamiento 
   - Sensores (Sensors): Conoce la posición de las calles así como sus direcciones para calcular el camino que va a recorrer, toma decisiones de parar en casos como que el semáforo este en rojo, o si se encuetra otro coche en la casilla que seguía en su camino. En caso de querer ir a una casille el cual otro coche también quiere estar va a participar su paciencia, en caso de que su paciencia se agote esperando más steps de lo que vale su paciencia, este tomará la desición de tomar esa casilla para dejar correr el flujo.
 
 Este agente es reactivo ya que responde de manera directa a los cambios en su entorno sin realizar un planeamiento anticipado. En lugar de contar con una planificación detallada a largo plazo, el agente toma decisiones conforme lleguen las situaciiones inmediatas. Por ejemplo, cuando un semáforo está en rojo, el coche detiene su movimiento y espera hasta que el semáforo se ponga en verde. Asimismo como si encuentra un obstáculo o si otro coche bloquea el camino
+
+Tiene como restricciones el movimientro con respecto a la posición de las celdas, únicamente pudiendo pasar por donde haya una calle, un semáforo o un destino. Aparte de que este tiene que seguir únicamente el sentido de la calle, lo que significa que no puede moverse en dirección opuesta. Si un semáforo está en rojo, el vehículo deberá esperar hasta que el semáforo cambie a verde. Además, los vehículos pueden detenerse temporalmente si detectan que el siguiente paso en su ruta está bloqueado por un vehículo delante de ellos. Por último, los agentes no conces cual es el estado de donde hay coches en todos lados del grid, únicamente en las posiciones vecinas.
 
   ---
 
@@ -59,11 +65,11 @@ Este agente es reactivo ya que responde de manera directa a los cambios en su en
 
   Aparece &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; $\rightarrow$ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;No tiene camino determinado &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; $\rightarrow$ crea un camino
 
-  Detecta un semáforo $\rightarrow$ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;El semáforo está en rojo &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; $\rightarrow$ Pararse
+  Detecta un semáforo $\rightarrow$ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;El semáforo está en rojo &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; $\rightarrow$ Pararse
 
   Detecta un coche &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; $\rightarrow$ &nbsp;El coche esta en la posición siguiente &nbsp;&nbsp; $\rightarrow$ Pararse
 
-  Esta en su destino &nbsp;&nbsp;&nbsp; $\rightarrow$ El coche esta en su posición de destino $\rightarrow$ Desaparecer
+  Esta en su destino &nbsp;&nbsp;&nbsp; $\rightarrow$ El coche esta en su posición de destino &nbsp;$\rightarrow$ Desaparecer
 
   ---
 
