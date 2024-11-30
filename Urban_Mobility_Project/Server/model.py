@@ -129,20 +129,19 @@ class City(Model):
                             self.destinations.append(pos)
                             self.streets.append((pos, "destination"))
 
-            for i in range(4):
-                destination = random.choice(self.destinations)
-                pos = self.carSpawns[i]
-                agent = Car(f"ca{self.num_cars+1000+i}", pos,
-                            destination, self.streets, self)
-                self.grid.place_agent(
-                    agent, pos)
-                self.schedule.add(agent)
-                self.num_cars += 1
-            print(self.streets)
         except FileNotFoundError:
             print(f"Error: No se encontró el archivo. en model")
         except Exception as e:
             print(f"Error inesperado: {e}")
+        for i in range(4):
+            destination = random.choice(self.destinations)
+            pos = self.carSpawns[i]
+            agent = Car(f"ca{self.num_cars+1000+i}", pos,
+                        destination, self)
+            self.grid.place_agent(
+                agent, pos)
+            self.schedule.add(agent)
+            self.num_cars += 1
 
     def get_direction_of_road(self, position):
         """
@@ -162,9 +161,10 @@ class City(Model):
         self.schedule.step()
         self.num_steps += 1
 
-        if self.num_steps % 2 == 0:
+        if self.num_steps % 10 == 0:
             # Identificar esquinas libres
-            free_corners = [corner for corner in self.carSpawns if not any(isinstance(agent, Car) for agent in self.grid.get_cell_list_contents(corner))]
+            free_corners = [corner for corner in self.carSpawns if not any(
+                isinstance(agent, Car) for agent in self.grid.get_cell_list_contents(corner))]
 
             if len(free_corners) == 0:
                 print("No hay esquinas disponibles. La simulación se detiene.")
